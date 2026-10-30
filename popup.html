@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>youtube2x</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="scripts/settings.js" defer></script>
+  <script src="popup.js" defer></script>
+</head>
+<body>
+  <header><h1>youtube2x</h1></header>
+  <main>
+    <label class="shorts-row" for="hide-shorts">
+      <span>Скрывать Shorts</span>
+      <input id="hide-shorts" type="checkbox" role="switch" disabled>
+    </label>
+    <section aria-labelledby="speed-label">
+      <div class="speed-row">
+        <label id="speed-label" for="speed">Скорость видео</label>
+        <output id="speed-value" for="speed">2×</output>
+      </div>
+      <input id="speed" type="range" min="0.25" max="4" step="0.25" value="2" disabled>
+      <div class="limits" aria-hidden="true"><span>0,25×</span><span>4×</span></div>
+    </section>
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>

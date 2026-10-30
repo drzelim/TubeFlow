@@ -1,52 +1,31 @@
 {
-  const MAX_COUNT = 7;
-
-  const timerIdObj = {};
-  const counts = {};
-
-  function debounce(func, delay) {
-    let timer;
-    return function(...args) {
-      clearTimeout(timer);
-      timer = setTimeout(() => func.apply(this, args), delay);
-    };
-  }
-
-  const shortsSelector = [
-    'ytd-rich-shelf-renderer',
-    'ytd-rich-section-renderer',
-    'ytd-reel-shelf-renderer',
-  ].join(', ');
-
-  const deleteShortsList = () => {
-    const shorts = self.document.querySelectorAll(shortsSelector);
-
-    if (shorts.length) {
-      console.log('Shorts are hidden');
-      self.requestAnimationFrame(() => {
-        shorts.forEach(item => item.style.display = 'none');
-      });
+  const style = document.createElement('style');
+  style.textContent = `
+    ytd-reel-shelf-renderer,
+    ytd-rich-shelf-renderer[is-shorts],
+    ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+    ytd-rich-item-renderer:has(a[href^="/shorts/"]),
+    ytd-video-renderer:has(a[href^="/shorts/"]),
+    ytd-grid-video-renderer:has(a[href^="/shorts/"]),
+    ytd-reel-item-renderer,
+    yt-shorts-lockup-view-model,
+    ytd-guide-entry-renderer:has(a[href^="/shorts"]),
+    ytd-mini-guide-entry-renderer:has(a[href^="/shorts"]),
+    yt-tab-shape:has(a[href$="/shorts"]) {
+      display: none !important;
+    }
+  `;
+  let enabled = false;
+  const update = () => {
+    if (enabled && document.documentElement) {
+      if (!style.isConnected) document.documentElement.append(style);
+    } else {
+      style.remove();
     }
   };
-
-  const debouncedDeleteShortsList = debounce(deleteShortsList, 500);
-
-  debouncedDeleteShortsList();
-  setTimeout(debouncedDeleteShortsList, 5000);
-
-  const callback = (mutationList) => {
-    for (let mutation of mutationList) {
-      if (mutation.type === 'childList' && mutation.addedNodes.length) {
-        const childNode = mutation.addedNodes[0];
-        if (!(childNode instanceof Element)) return;
-
-        debouncedDeleteShortsList();
-      }
-    }
-  };
-
-  const config = { attributes: true, childList: true, subtree: true };
-
-  const observer = new MutationObserver(callback);
-  observer.observe(self.document, config);
+  youtube2xSettings.subscribe((settings) => {
+    enabled = settings.hideShorts;
+    update();
+  });
+  document.addEventListener('DOMContentLoaded', update, { once: true });
 }

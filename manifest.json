@@ -1,17 +1,26 @@
 {
     "manifest_version": 3,
     "name": "youtube2x",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "author": "DrZelim",
     "background": {
         "service_worker": "background.js"
     },
     "permissions": [
         "scripting",
-        "activeTab",
-        "tabs"
+        "storage"
     ],
     "host_permissions": [
         "https://www.youtube.com/"
-    ]
+    ],
+    "action": {
+        "default_title": "youtube2x",
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [{
+        "matches": ["https://www.youtube.com/*"],
+        "js": ["scripts/settings.js", "scripts/speed.js", "scripts/hide-shorts.js"],
+        "run_at": "document_start",
+        "all_frames": true
+    }]
 }
