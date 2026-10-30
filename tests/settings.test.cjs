@@ -16,6 +16,7 @@ function setup(saved = {}) {
       },
     },
     document: {
+      querySelector: () => null,
       querySelectorAll: () => [video],
       addEventListener: (name, listener) => { events[name] = listener; },
     },
@@ -36,6 +37,49 @@ test('saved speed applies to existing videos and live changes', async () => {
   app.video.playbackRate = 1;
   app.events.loadedmetadata({ target: app.video });
   assert.equal(app.video.playbackRate, 2.75);
+});
+
+test('keyboard speed indicator updates, resets its timeout and disappears', async () => {
+  const app = setup();
+  const children = [];
+  const player = { append(node) { children.push(node); node.parentNode = this; } };
+  app.context.document.querySelector = () => player;
+  app.context.document.createElement = () => ({
+    style: {}, setAttribute() {},
+    remove() { children.splice(children.indexOf(this), 1); this.parentNode = null; },
+  });
+  const timers = new Map();
+  let timerId = 0;
+  app.context.setTimeout = (callback, delay) => {
+    assert.equal(delay, 2000);
+    timers.set(++timerId, callback);
+    return timerId;
+  };
+  app.context.clearTimeout = (id) => timers.delete(id);
+  app.context.chrome.storage.local.set = async () => {};
+  for (const file of ['settings.js', 'speed.js']) {
+    vm.runInContext(fs.readFileSync(`scripts/${file}`, 'utf8'), app.context);
+  }
+  await new Promise(setImmediate);
+  assert.equal(children.length, 0);
+  const press = () => app.events.keydown({
+    code: 'Period', shiftKey: true, composedPath: () => [],
+    preventDefault() {}, stopImmediatePropagation() {},
+  });
+  press();
+  assert.equal(children.length, 1);
+  assert.equal(children[0].textContent, '2,25×');
+  const indicator = children[0];
+  press();
+  assert.equal(children.length, 1);
+  assert.equal(children[0], indicator);
+  assert.equal(indicator.textContent, '2,5×');
+  assert.equal(timers.size, 1);
+  timers.get(timerId)();
+  assert.equal(children.length, 0);
+  press();
+  assert.equal(children.length, 1);
+  assert.equal(children[0].textContent, '2,75×');
 });
 
 test('invalid saved speeds fall back to 2x', async () => {
