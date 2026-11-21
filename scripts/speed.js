@@ -44,14 +44,17 @@
   let saveQueue = Promise.resolve();
   document.addEventListener('keydown', (event) => {
     if (speed === undefined || event.defaultPrevented || event.isComposing || !event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.code !== 'Period' && event.code !== 'Comma') return;
+    const digit = /^Digit([1-4])$/.exec(event.code);
+    if (!digit && event.code !== 'Period' && event.code !== 'Comma') return;
     const path = event.composedPath();
     if (path.some((node) => node.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(node.tagName) || node.closest?.('[role="textbox"]'))) return;
 
     // Handle YouTube's shortcuts before its player to avoid applying the step twice.
     event.preventDefault();
     event.stopImmediatePropagation();
-    const next = Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed + (event.code === 'Period' ? STEP : -STEP)));
+    const next = digit
+      ? Number(digit[1])
+      : Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed + (event.code === 'Period' ? STEP : -STEP)));
     if (next === speed) {
       showSpeedIndicator();
       return;

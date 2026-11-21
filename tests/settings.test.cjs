@@ -91,6 +91,30 @@ test('invalid saved speeds fall back to 2x', async () => {
   assert.equal(app.video.playbackRate, 2);
 });
 
+test('toolbar badge shows the saved speed and follows local changes', async () => {
+  const app = setup({ playbackSpeed: 1.25 });
+  const badgeUpdates = [];
+  app.context.chrome.runtime = {
+    onInstalled: { addListener() {} },
+    onStartup: { addListener() {} },
+  };
+  app.context.chrome.action = {
+    setBadgeText: async ({ text }) => badgeUpdates.push(text),
+  };
+  app.context.importScripts = (file) => {
+    vm.runInContext(fs.readFileSync(file, 'utf8'), app.context);
+  };
+  vm.runInContext(fs.readFileSync('background.js', 'utf8'), app.context);
+  await new Promise(setImmediate);
+  assert.deepEqual(badgeUpdates, ['1,25']);
+  app.change({ playbackSpeed: { newValue: 4 } });
+  await new Promise(setImmediate);
+  assert.equal(badgeUpdates.at(-1), '4');
+  app.change({ playbackSpeed: { newValue: undefined } });
+  await new Promise(setImmediate);
+  assert.equal(badgeUpdates.at(-1), '2');
+});
+
 test('Shorts hiding can be disabled and enabled without removing page content', async () => {
   const app = setup();
   const style = { isConnected: false, remove() { this.isConnected = false; } };
@@ -191,4 +215,20 @@ test('keyboard speed controls save changes, respect bounds and ignore text input
   press({ code: 'Comma' });
   await new Promise(setImmediate);
   assert.equal(app.video.playbackRate, 0.25);
+  for (const speed of [2, 1, 3, 4]) {
+    assert.equal(press({ code: `Digit${speed}` }), true);
+    assert.equal(app.video.playbackRate, speed);
+    assert.equal(app.video.defaultPlaybackRate, speed);
+    await new Promise(setImmediate);
+    assert.equal(saved.at(-1).playbackSpeed, speed);
+  }
+  const savedCount = saved.length;
+  assert.equal(press({ code: 'Digit4' }), true);
+  assert.equal(press({ code: 'Digit0' }), false);
+  assert.equal(press({ code: 'Digit5' }), false);
+  assert.equal(press({ code: 'Digit1', shiftKey: false }), false);
+  assert.equal(press({ code: 'Digit1', composedPath: () => [{ tagName: 'INPUT' }] }), false);
+  await new Promise(setImmediate);
+  assert.equal(saved.length, savedCount);
+  assert.equal(app.video.playbackRate, 4);
 });
