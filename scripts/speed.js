@@ -1,7 +1,5 @@
 {
-  const MIN_SPEED = 0.25;
-  const MAX_SPEED = 4;
-  const STEP = 0.25;
+  const { MIN_SPEED, MAX_SPEED, SPEED_STEP } = youtube2xSettings;
 
   let speed;
   let speedIndicator;
@@ -44,14 +42,18 @@
   let saveQueue = Promise.resolve();
   document.addEventListener('keydown', (event) => {
     if (speed === undefined || event.defaultPrevented || event.isComposing || !event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.code !== 'Period' && event.code !== 'Comma') return;
+    const digit = /^Digit([1-9])$/.exec(event.code);
+    const directSpeed = digit ? Number(digit[1]) : null;
+    if (directSpeed !== null && (directSpeed < MIN_SPEED || directSpeed > MAX_SPEED)) return;
+    if (directSpeed === null && event.code !== 'Period' && event.code !== 'Comma') return;
     const path = event.composedPath();
     if (path.some((node) => node.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(node.tagName) || node.closest?.('[role="textbox"]'))) return;
 
     // Handle YouTube's shortcuts before its player to avoid applying the step twice.
     event.preventDefault();
     event.stopImmediatePropagation();
-    const next = Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed + (event.code === 'Period' ? STEP : -STEP)));
+    const next = directSpeed ??
+      Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed + (event.code === 'Period' ? SPEED_STEP : -SPEED_STEP)));
     if (next === speed) {
       showSpeedIndicator();
       return;
