@@ -1,15 +1,26 @@
+const { MIN_SPEED, MAX_SPEED, SPEED_STEP } = youtube2xSettings;
 const shortsInput = document.getElementById('hide-shorts');
 const speedInput = document.getElementById('speed');
 const speedOutput = document.getElementById('speed-value');
 const decreaseButton = document.getElementById('speed-decrease');
 const increaseButton = document.getElementById('speed-increase');
 const status = document.getElementById('status');
+function formatSpeed(speed) {
+  return `${speed.toLocaleString('ru-RU')}×`;
+}
+speedInput.min = String(MIN_SPEED);
+speedInput.max = String(MAX_SPEED);
+speedInput.step = String(SPEED_STEP);
+document.getElementById('speed-min').textContent = formatSpeed(MIN_SPEED);
+document.getElementById('speed-max').textContent = formatSpeed(MAX_SPEED);
+
 function renderSpeed() {
-  const label = `${Number(speedInput.value).toLocaleString('ru-RU')}×`;
+  const speed = Number(speedInput.value);
+  const label = formatSpeed(speed);
   speedOutput.value = label;
   speedInput.setAttribute('aria-valuetext', label);
-  decreaseButton.disabled = speedInput.disabled || Number(speedInput.value) <= Number(speedInput.min);
-  increaseButton.disabled = speedInput.disabled || Number(speedInput.value) >= Number(speedInput.max);
+  decreaseButton.disabled = speedInput.disabled || speed <= MIN_SPEED;
+  increaseButton.disabled = speedInput.disabled || speed >= MAX_SPEED;
 }
 let saveQueue = Promise.resolve();
 function save(values) {
@@ -37,7 +48,7 @@ speedInput.addEventListener('input', () => {
 function stepSpeed(direction) {
   if (speedInput.disabled) return;
   const current = Number(speedInput.value);
-  const next = Math.min(Number(speedInput.max), Math.max(Number(speedInput.min), current + direction * Number(speedInput.step)));
+  const next = Math.min(MAX_SPEED, Math.max(MIN_SPEED, current + direction * SPEED_STEP));
   if (next === current) return;
   speedInput.value = next;
   renderSpeed();

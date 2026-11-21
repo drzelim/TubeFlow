@@ -133,13 +133,12 @@ test('Shorts hiding can be disabled and enabled without removing page content', 
 
 test('popup loads settings and saves switch and slider changes', async () => {
   const app = setup({ hideShorts: false, playbackSpeed: 1.25 });
-  const elements = Object.fromEntries(['hide-shorts', 'speed', 'speed-value', 'speed-decrease', 'speed-increase', 'status'].map((id) => [id, {
+  const elements = Object.fromEntries(['hide-shorts', 'speed', 'speed-value', 'speed-min', 'speed-max', 'speed-decrease', 'speed-increase', 'status'].map((id) => [id, {
     disabled: true,
     events: {},
     addEventListener(name, listener) { this.events[name] = listener; },
     setAttribute() {},
   }]));
-  Object.assign(elements.speed, { min: '0.25', max: '4', step: '0.25' });
   const saved = [];
   app.context.document.getElementById = (id) => elements[id];
   app.context.chrome.storage.local.set = async (values) => saved.push({ ...values });
@@ -150,6 +149,11 @@ test('popup loads settings and saves switch and slider changes', async () => {
   assert.equal(elements['hide-shorts'].checked, false);
   assert.equal(elements.speed.value, 1.25);
   assert.equal(elements.speed.disabled, false);
+  assert.equal(elements.speed.min, '0.25');
+  assert.equal(elements.speed.max, '4');
+  assert.equal(elements.speed.step, '0.25');
+  assert.equal(elements['speed-min'].textContent, '0,25×');
+  assert.equal(elements['speed-max'].textContent, '4×');
   elements['hide-shorts'].checked = true;
   elements['hide-shorts'].events.change();
   elements.speed.value = '3.5';

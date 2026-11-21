@@ -1,5 +1,9 @@
 const youtube2xSettings = (() => {
-  const defaults = { hideShorts: true, playbackSpeed: 2 };
+  // Keep the limits aligned with SPEED_STEP for the popup slider.
+  const MIN_SPEED = 0.25;
+  const MAX_SPEED = 6;
+  const SPEED_STEP = 0.25;
+  const defaults = { hideShorts: true, playbackSpeed: Math.min(MAX_SPEED, Math.max(MIN_SPEED, 2)) };
   let current = { ...defaults };
   const listeners = new Set();
   const changedDuringLoad = new Set();
@@ -7,7 +11,7 @@ const youtube2xSettings = (() => {
   function normalize(values) {
     return {
       hideShorts: typeof values.hideShorts === 'boolean' ? values.hideShorts : defaults.hideShorts,
-      playbackSpeed: Number.isFinite(values.playbackSpeed) && values.playbackSpeed >= 0.25 && values.playbackSpeed <= 4
+      playbackSpeed: Number.isFinite(values.playbackSpeed) && values.playbackSpeed >= MIN_SPEED && values.playbackSpeed <= MAX_SPEED
         ? values.playbackSpeed : defaults.playbackSpeed,
     };
   }
@@ -31,6 +35,9 @@ const youtube2xSettings = (() => {
   });
   ready.catch(console.error);
   return {
+    MIN_SPEED,
+    MAX_SPEED,
+    SPEED_STEP,
     ready,
     subscribe(listener) {
       listeners.add(listener);

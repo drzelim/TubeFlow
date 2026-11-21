@@ -21,12 +21,12 @@
             <label id="speed-label" for="speed">Скорость видео</label>
             <div class="speed-controls">
                 <button id="speed-decrease" type="button" aria-label="Уменьшить скорость" title="Уменьшить скорость" disabled>−</button>
-                <output id="speed-value" for="speed" aria-live="polite">2×</output>
+                <output id="speed-value" for="speed" aria-live="polite"></output>
                 <button id="speed-increase" type="button" aria-label="Увеличить скорость" title="Увеличить скорость" disabled>+</button>
             </div>
         </div>
-        <input id="speed" type="range" min="0.25" max="4" step="0.25" value="2" disabled>
-        <div class="limits" aria-hidden="true"><span>0,25×</span><span>4×</span></div>
+        <input id="speed" type="range" disabled>
+        <div class="limits" aria-hidden="true"><span id="speed-min"></span><span id="speed-max"></span></div>
     </section>
     <p id="status" role="status" aria-live="polite"></p>
 </main>
